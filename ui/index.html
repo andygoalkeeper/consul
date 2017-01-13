@@ -416,7 +416,10 @@
         <hr>
       </div>
 
-      <h3 class="no-margin">{{ model.0.Service.Service }}</h3>
+      <h3 class="no-margin">
+        {{ model.0.Service.Service }}
+        <button {{ action "deregisterService" model.0.Service }} {{ bind-attr class=":btn :btn-danger :pull-right :btn-mini isLoading:btn-warning" }}>Deregister service on all nodes</button>
+      </h3>
       <hr>
 
       <h5>Tags</h5>
@@ -533,7 +536,7 @@
       <h5>Services</h5>
 
       {{#each service in model.Services }}
-        {{#link-to 'services.show' service.Service tagName="div" href=false class="list-group-item list-condensed-link double-line" }}
+        {{#link-to 'services.show' service.Service tagName="div" href=false class="list-group-item list-condensed-link double-line with-button" }}
           <div class="list-bar-horizontal bg-light-gray"></div>
             <div class="name">
               {{service.Service}}
@@ -544,9 +547,14 @@
             <ul class="list-inline sub">
               {{#each tag in service.Tags}}
                 <li>{{tag}}</li>
+              {{else}}
+                <li>&nbsp;</li>
               {{/each}}
               {{serviceTagMessage service.Tags}}
             </ul>
+            <p style="padding-right: 7px; overflow: hidden;">
+              <button {{ action "deregisterNodeService" service bubbles=false }} {{ bind-attr class=":btn :btn-danger :pull-right :btn-mini isLoading:btn-warning" }}>Deregister service</button>
+            </p>
         {{/link-to}}
 
       {{/each}}
@@ -570,6 +578,9 @@
             <p>{{ check.Notes }}</p>
             <h5>Output</h5>
             <pre>{{check.Output}}</pre>
+            <p style="overflow: hidden;">
+              <button {{ action "deregisterNodeCheck" check }} {{ bind-attr class=":btn :btn-danger :pull-right :btn-mini isLoading:btn-warning" }}>Deregister check</button>
+            </p>
           </div>
         </div>
 

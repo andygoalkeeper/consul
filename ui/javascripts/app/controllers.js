@@ -275,6 +275,57 @@ App.NodesShowController = Ember.ObjectController.extend({
   dc: Ember.computed.alias("controllers.dc"),
 
   actions: {
+    deregisterNodeService: function(service) {
+      this.set('isLoading', true);
+      var controller = this;
+      var node = controller.get('model');
+      var dc = controller.get('dc').get('datacenter');
+      var token = App.get('settings.token');
+
+      if (window.confirm("Are you sure you want to deregister this service?")) {
+        // Deregister service
+        Ember.$.ajax({
+            url: formatUrl(consulHost + '/v1/catalog/deregister', dc, token),
+            type: 'PUT',
+            data: JSON.stringify({
+              'Datacenter': dc,
+              'Node': node.Node,
+              'ServiceID': service.ID
+            })
+        }).then(function() {
+          node.Services.removeObject(service);
+        }).fail(function(response) {
+          notify('Received error while processing: ' + (response.responseText || response.statusText), 8000);
+        });
+      }
+    },
+
+    deregisterNodeCheck: function(check) {
+      this.set('isLoading', true);
+      var controller = this;
+      var node = controller.get('model');
+      var dc = controller.get('dc').get('datacenter');
+      var token = App.get('settings.token');
+
+      if (window.confirm("Are you sure you want to deregister this check?")) {
+        node.Checks.removeObject(check);
+        // Deregister check
+        Ember.$.ajax({
+            url: formatUrl(consulHost + '/v1/catalog/deregister', dc, token),
+            type: 'PUT',
+            data: JSON.stringify({
+              'Datacenter': dc,
+              'Node': node.Node,
+              'CheckID': check.CheckID
+            })
+        }).then(function() {
+          node.Checks.removeObject(check);
+        }).fail(function(response) {
+          notify('Received error while processing: ' + (response.responseText || response.statusText), 8000);
+        });
+      }
+    },
+
     invalidateSession: function(sessionId) {
       this.set('isLoading', true);
       var controller = this;
@@ -305,7 +356,56 @@ App.NodesController = ItemBaseController.extend({
 });
 
 App.ServicesController = ItemBaseController.extend({
-  items: Ember.computed.alias("services"),
+  items: Ember.computed.alias("services")
+});
+
+App.ServicesShowController = Ember.ObjectController.extend({
+  needs: ["dc", "services"],
+  dc: Ember.computed.alias("controllers.dc"),
+
+  actions: {
+    deregisterService: function(service) {
+      this.set('isLoading', true);
+      var controller = this;
+      var dc = controller.get('dc').get('datacenter');
+      var token = App.get('settings.token');
+
+      if (window.confirm("Are you sure you want to deregister this service?")) {
+        var nodeService = controller.get('controllers.services').get('services').find(function(n) {
+              return n.Name === service.Service;
+            }),
+            deregisterRequest = function (nodeId) {
+              return Ember.$.ajax({
+                url: formatUrl(consulHost + '/v1/catalog/deregister', dc, token),
+                type: 'PUT',
+                data: JSON.stringify({
+                  'Datacenter': dc,
+                  'Node': nodeId,
+                  'ServiceID': service.ID
+                })
+              });
+            },
+            deregisterRequests = [];
+
+        for (var i = 0, imax = nodeService.Nodes.length; i < imax; i++) {
+          deregisterRequests.push(deregisterRequest(nodeService.Nodes[i]));
+        }
+
+        // Deregister service
+        Ember.$.when.apply(Ember.$, deregisterRequests).then(function() {
+          var services = controller.get('controllers.services').get('services');
+
+          controller.get('controllers.services').set('services', services.filter(function(n) {
+            return n.Name !== service.Service;
+          }));
+
+          controller.transitionToRoute('services');
+        }).fail(function(response) {
+          notify('Received error while processing: ' + (response.responseText || response.statusText), 8000);
+        });
+      }
+    }
+  }
 });
 
 App.AclsController = Ember.ArrayController.extend({
@@ -504,4 +604,3 @@ App.SettingsController = Ember.ObjectController.extend({
     }
   }
 });
-
