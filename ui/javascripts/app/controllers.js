@@ -164,6 +164,67 @@ App.KvShowController = KvBaseController.extend(Ember.Validations.Mixin, {
           controller.set('errorMessage', 'Received error while processing: ' + response.statusText);
         });
       }
+    },
+
+    copyFolderContent: function () {
+      var controller = this;
+      var dc = controller.get('dc').get('datacenter');
+      var token = App.get('settings.token');
+
+      Ember.$.ajax({
+        url: (formatUrl(consulHost + "/v1/kv/" + controller.get('parentKey') + '?recurse', dc, token)),
+        type: 'GET'
+      }).then(function(response) {
+        var regExp = new RegExp('^' + controller.get('parentKey'));
+
+        App.set('copyPasteBuffer', response.map(function (item) {
+          item.Key = item.Key.replace(regExp, '');
+          return item;
+        }));
+      });
+    },
+
+    pasteInThisFolder: function () {
+      var controller = this;
+      var dc = controller.get('dc').get('datacenter');
+      var token = App.get('settings.token');
+      var pasteData = App.get('copyPasteBuffer');
+      var parentKey = controller.get('parentKey');
+
+      var pasteDataArrays = [],
+          chunk = 64;
+
+      for (var i = 0, imax = pasteData.length; i < imax; i += chunk) {
+        pasteDataArrays.push(pasteData.slice(i, i+chunk));
+      }
+
+      var pasteRequest = function (keys) {
+            return Ember.$.ajax({
+              url: formatUrl(consulHost + '/v1/txn', dc, token),
+              type: 'PUT',
+              data: JSON.stringify(keys.map(function (item) {
+                return {
+                  KV: {
+                    Verb: 'set',
+                    Key: ((parentKey === '/') ? '' : parentKey) + item.Key,
+                    Value: item.Value,
+                    Flags: item.Flags
+                  }
+                };
+              }))
+            });
+          },
+          pasteRequests = [];
+
+      for (i = 0, imax = pasteDataArrays.length; i < imax; i++) {
+        pasteRequests.push(pasteRequest(pasteDataArrays[i]));
+      }
+
+      Ember.$.when.apply(Ember.$, pasteRequests).then(function() {
+        controller.get('target.router').refresh();
+      }).fail(function(response) {
+        notify('Received error while processing: ' + (response.responseText || response.statusText), 8000);
+      });
     }
   }
 });
@@ -223,6 +284,19 @@ App.KvEditController = KvBaseController.extend({
         // Render the error message on the form if the request failed
         controller.set('errorMessage', 'Received error while processing: ' + response.statusText);
       });
+    },
+
+    copyKey: function () {
+      var item = this.get('model');
+      var itemKeyPath = item.Key.split('/');
+
+      item = {
+        Key: itemKeyPath[itemKeyPath.length - 1],
+        Value: item.Value,
+        Flags: item.Flags
+      };
+
+      App.set('copyPasteBuffer', [item]);
     }
   }
 
@@ -504,4 +578,3 @@ App.SettingsController = Ember.ObjectController.extend({
     }
   }
 });
-
