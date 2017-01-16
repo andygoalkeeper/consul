@@ -418,7 +418,9 @@
 
       <h3 class="no-margin">
         {{ model.0.Service.Service }}
-        <button {{ action "deregisterService" model.0.Service }} {{ bind-attr class=":btn :btn-danger :pull-right :btn-mini isLoading:btn-warning" }}>Deregister service on all nodes</button>
+      </h3>
+      <h3>
+        <button {{ action "deregisterService" model.0.Service }} {{ bind-attr class=":btn :btn-danger :btn-mini isLoading:btn-warning" }}>Deregister service on all nodes</button>
       </h3>
       <hr>
 
@@ -434,12 +436,14 @@
       {{#each node in model }}
 
         {{#link-to 'nodes.show' node.Node.Node tagName="div" href=false class="panel panel-link panel-list" }}
-          <div {{bind-attr class="node.hasFailingChecks:bg-orange:bg-green :panel-bar-horizontal"}}></div>
+          <div {{bind-attr class="node.hasFailingChecks:bg-orange:bg-green :panel-bar-horizontal"}} style="height: 62px;"></div>
 
           <div class="panel-heading">
             <h3 class="panel-title">
               {{node.Node.Node}}
               <small>{{node.Node.Address}}</small>
+              &nbsp;
+              <button {{ action "deregisterService" model.0.Service node bubbles=false }} {{ bind-attr class=":btn :btn-danger :btn-mini isLoading:btn-warning" }}>Deregister service on this node</button>
               <span class="panel-note">{{node.checkMessage}}</span>
             </h3>
           </div>

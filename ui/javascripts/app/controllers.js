@@ -364,7 +364,7 @@ App.ServicesShowController = Ember.ObjectController.extend({
   dc: Ember.computed.alias("controllers.dc"),
 
   actions: {
-    deregisterService: function(service) {
+    deregisterService: function(service, node) {
       this.set('isLoading', true);
       var controller = this;
       var dc = controller.get('dc').get('datacenter');
@@ -387,19 +387,29 @@ App.ServicesShowController = Ember.ObjectController.extend({
             },
             deregisterRequests = [];
 
-        for (var i = 0, imax = nodeService.Nodes.length; i < imax; i++) {
-          deregisterRequests.push(deregisterRequest(nodeService.Nodes[i]));
+        if (node) {
+          deregisterRequest(node.Node.Node);
+        } else {
+          for (var i = 0, imax = nodeService.Nodes.length; i < imax; i++) {
+            deregisterRequests.push(deregisterRequest(nodeService.Nodes[i]));
+          }
         }
 
         // Deregister service
         Ember.$.when.apply(Ember.$, deregisterRequests).then(function() {
-          var services = controller.get('controllers.services').get('services');
+          var isDeregisterOnAllNodes = !node || (node && nodeService.Nodes.length === 1);
 
-          controller.get('controllers.services').set('services', services.filter(function(n) {
-            return n.Name !== service.Service;
-          }));
+          if (isDeregisterOnAllNodes) {
+            var services = controller.get('controllers.services').get('services');
 
-          controller.transitionToRoute('services');
+            controller.get('controllers.services').set('services', services.filter(function(n) {
+              return n.Name !== service.Service;
+            }));
+
+            controller.transitionToRoute('services');
+          } else {
+            controller.get('model').removeObject(node);
+          }
         }).fail(function(response) {
           notify('Received error while processing: ' + (response.responseText || response.statusText), 8000);
         });
