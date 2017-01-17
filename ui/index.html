@@ -197,15 +197,22 @@
     <div class="row">
       <div class="col-md-6 col-lg-5 padded-right-middle">
 
-          {{#each item in model }}
-            {{#link-to item.linkToRoute item.Key tagName="div" href=false class="list-group-item list-condensed-link" }}
-              <div {{bind-attr class="item.isFolder:bg-gray:bg-light-gray :list-bar-horizontal"}}></div>
-              <div class="name">
-                {{item.keyWithoutParent}}
-              </div>
-            {{/link-to}}
+        {{#each item in model }}
+          {{#link-to item.linkToRoute item.Key tagName="div" href=false class="list-group-item list-condensed-link" }}
+            <div {{bind-attr class="item.isFolder:bg-gray:bg-light-gray :list-bar-horizontal"}}></div>
+            <div class="name">
+              {{item.keyWithoutParent}}
+            </div>
+          {{/link-to}}
 
-          {{/each}}
+        {{/each}}
+
+        {{#if model.length}}
+          <button {{ action "copyFolderContent" }} {{ bind-attr class=":btn :btn-default" }}>Copy folder content</button>
+        {{/if}}
+        {{#if App.copyPasteBuffer}}
+          <button {{ action "pasteInThisFolder" }} {{ bind-attr class=":btn :btn-default" }}>Paste in this folder</button>
+        {{/if}}
       </div>
 
       <div class="border-left hidden-xs hidden-sm">
@@ -276,6 +283,8 @@
               </div>
             {{/link-to}}
           {{/each}}
+
+          <button {{ action "copyKey" }} {{ bind-attr class=":btn :btn-default" }}>Copy key</button>
       </div>
 
       <div class="border-left hidden-xs hidden-sm">
