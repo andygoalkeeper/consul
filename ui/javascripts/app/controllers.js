@@ -359,13 +359,7 @@ App.NodesShowController = Ember.ObjectController.extend({
       if (window.confirm("Are you sure you want to deregister this service?")) {
         // Deregister service
         Ember.$.ajax({
-            url: formatUrl(consulHost + '/v1/catalog/deregister', dc, token),
-            type: 'PUT',
-            data: JSON.stringify({
-              'Datacenter': dc,
-              'Node': node.Node,
-              'ServiceID': service.ID
-            })
+          url: formatUrl(getNodeHost(node.Node) + '/v1/agent/service/deregister/' + service.ID, dc, token)
         }).then(function() {
           node.Services.removeObject(service);
         }).fail(function(response) {
@@ -382,16 +376,9 @@ App.NodesShowController = Ember.ObjectController.extend({
       var token = App.get('settings.token');
 
       if (window.confirm("Are you sure you want to deregister this check?")) {
-        node.Checks.removeObject(check);
         // Deregister check
         Ember.$.ajax({
-            url: formatUrl(consulHost + '/v1/catalog/deregister', dc, token),
-            type: 'PUT',
-            data: JSON.stringify({
-              'Datacenter': dc,
-              'Node': node.Node,
-              'CheckID': check.CheckID
-            })
+          url: formatUrl(getNodeHost(node.Node) + '/v1/agent/check/deregister/' + check.CheckID, dc, token)
         }).then(function() {
           node.Checks.removeObject(check);
         }).fail(function(response) {
@@ -450,19 +437,13 @@ App.ServicesShowController = Ember.ObjectController.extend({
             }),
             deregisterRequest = function (nodeId) {
               return Ember.$.ajax({
-                url: formatUrl(consulHost + '/v1/catalog/deregister', dc, token),
-                type: 'PUT',
-                data: JSON.stringify({
-                  'Datacenter': dc,
-                  'Node': nodeId,
-                  'ServiceID': service.ID
-                })
+                url: formatUrl(getNodeHost(nodeId) + '/v1/agent/service/deregister/' + service.ID, dc, token)
               });
             },
             deregisterRequests = [];
 
         if (node) {
-          deregisterRequest(node.Node.Node);
+          deregisterRequests.push(deregisterRequest(node.Node.Node));
         } else {
           for (var i = 0, imax = nodeService.Nodes.length; i < imax; i++) {
             deregisterRequests.push(deregisterRequest(nodeService.Nodes[i]));

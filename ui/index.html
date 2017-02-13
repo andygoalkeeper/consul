@@ -13,7 +13,16 @@
     // Change this value to your consul host if you are not running
     // the UI on the same host as a consul instance.
     // e.g. "http://myserver.com:8500"
-    var consulHost = ''
+    var consulHost = '',
+        getNodeHost = function (nodeName) {
+          var consulRegExp = new RegExp('consul|127.0.0.1');
+
+          if (consulRegExp.test(location.host)) {
+            return '//' + location.host.replace(consulRegExp, nodeName);
+          }
+
+          return '//' + nodeName + (location.port ? (':' + location.port) : '');
+        };
   </script>
 
 </head>
