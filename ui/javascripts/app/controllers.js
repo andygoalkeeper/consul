@@ -425,19 +425,20 @@ App.ServicesShowController = Ember.ObjectController.extend({
   dc: Ember.computed.alias("controllers.dc"),
 
   actions: {
-    deregisterService: function(service, node) {
+    deregisterService: function(node) {
       this.set('isLoading', true);
       var controller = this;
       var dc = controller.get('dc').get('datacenter');
       var token = App.get('settings.token');
+      var service = node ? node.Service : controller.model[0].Service;
 
-      if (window.confirm("Are you sure you want to deregister this service?")) {
+      if (window.confirm('Are you sure you want to deregister service "' + (node ? service.ID : service.Service) + '"?')) {
         var nodeService = controller.get('controllers.services').get('services').find(function(n) {
               return n.Name === service.Service;
             }),
-            deregisterRequest = function (nodeId) {
+            deregisterRequest = function (nodeId, serviceId) {
               return Ember.$.ajax({
-                url: formatUrl(getNodeHost(nodeId) + '/v1/agent/service/deregister/' + service.ID, dc, token)
+                url: formatUrl(getNodeHost(nodeId) + '/v1/agent/service/deregister/' + (serviceId || service.ID), dc, token)
               });
             },
             deregisterRequests = [];
@@ -445,8 +446,8 @@ App.ServicesShowController = Ember.ObjectController.extend({
         if (node) {
           deregisterRequests.push(deregisterRequest(node.Node.Node));
         } else {
-          for (var i = 0, imax = nodeService.Nodes.length; i < imax; i++) {
-            deregisterRequests.push(deregisterRequest(nodeService.Nodes[i]));
+          for (var i = 0, imax = controller.model.length; i < imax; i++) {
+            deregisterRequests.push(deregisterRequest(controller.model[i].Node.Node, controller.model[i].Service.ID));
           }
         }
 
