@@ -342,7 +342,7 @@ ItemBaseController = Ember.ArrayController.extend({
       this.toggleProperty('condensed');
     },
 
-    openNodeServicePopup: function() {
+    openNodeServicePopup: function(service, node) {
       this.set('registerNodesPrompt', 'Loading nodes...');
 
       Ember.$.getJSON(formatUrl(consulHost + '/v1/internal/ui/nodes', this.get('dc').get('datacenter'),
@@ -355,24 +355,53 @@ ItemBaseController = Ember.ArrayController.extend({
           });
         }
 
+        var registerTag = '',
+            registerTags = ['PROD', 'QA', 'DEV'],
+            registerCustomTagsString = '';
+
+        if (service && service.Tags && service.Tags.length) {
+          for (var i = 0, imax = service.Tags.length; i < imax; i++) {
+            if ($.inArray(service.Tags[i], registerTags) !== -1) {
+              registerTag = service.Tags[i];
+              break;
+            }
+          }
+
+          if (registerTag) {
+            var registerCustomTags = [];
+
+            for (var j = 0, jmax = service.Tags.length; j < jmax; j++) {
+              if (service.Tags[j] !== registerTag) {
+                registerCustomTags.push(service.Tags[j]);
+              }
+            }
+
+            registerCustomTagsString = registerCustomTags.join(', ');
+          }
+        }
+
         this.setProperties({
-          registerName: '',
-          registerNode: '',
+          isRegisterEditing: !!service,
+          registerName: service ? service.Service : '',
+          registerNode: node ? node.Node.Node : '',
           registerNodes: nodes,
-          registerTag: '',
-          registerTags: ['PROD', 'QA', 'DEV'],
-          registerCustomTags: '',
+          registerTag: registerTag,
+          registerTags: registerTags,
+          registerCustomTags: registerCustomTagsString,
           registerNodesPrompt: 'Please select a node',
-          registerAddress: '',
-          registerPort: '',
-          registerId: ''
+          registerAddress: service ? service.Address : '',
+          registerPort: service ? service.Port : ''
+        });
+
+        Ember.run.next(this, function () {
+          this.set('registerId', service ? service.ID : '');
         });
       }));
 
-      Ember.run.next(function () {
+      Ember.run.later(function () {
         $('.js-popup--form_register_service').show().scrollTop(0);
         $('body').css('overflow', 'hidden');
-      });
+      }, 100);
     },
 
     closeNodeServicePopup: function() {
@@ -380,7 +409,7 @@ ItemBaseController = Ember.ArrayController.extend({
       $('body').css('overflow', 'auto');
     },
 
-    registerNodeService: function () {
+    registerNodeService: function (isEditing) {
       var registerCustomTags = (this.get('registerCustomTags') || '').split(/[ ,]+/);
       var registerCustomTag;
       var tags = [];
@@ -397,19 +426,19 @@ ItemBaseController = Ember.ArrayController.extend({
         tags.unshift(this.get('registerTag'));
       }
 
-      if (!this.get('registerNode')) {
+      if (!this.get('registerNode') && !isEditing) {
         notify('Please select a node', 3000);
         return;
-      } else if (!$.trim(this.get('registerName'))) {
+      } else if (!$.trim(this.get('registerName')) && !isEditing) {
         notify('Please enter service name', 3000);
         return;
-      } else if (!tags.length) {
+      } else if (!tags.length && !isEditing) {
         notify('Please select at least one tag', 3000);
         return;
       } else if (!$.trim(this.get('registerAddress')) && !$.trim(this.get('registerPort'))) {
         notify('Please enter an address or a port', 3000);
         return;
-      } else if (!$.trim(this.get('registerId'))) {
+      } else if (!$.trim(this.get('registerId')) && !isEditing) {
         notify('Please enter ID', 3000);
         return;
       }
@@ -433,14 +462,29 @@ ItemBaseController = Ember.ArrayController.extend({
         url: formatUrl(getNodeHost(this.get('registerNode')) + '/v1/agent/service/register',
              this.get('dc').get('datacenter'), App.get('settings.token')),
         data: data
-      }).then(function() {
-        $('.js-popup--form_register_service').hide();
-        $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
-        $('body').css('overflow', 'auto');
-        this.transitionToRoute('index');
-      }).fail(Ember.run.bind(this, function() {
-        $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
-      }));
+      }).then(Ember.run.bind(this, function() {
+        if (isEditing) {
+          this.transitionToRoute('services');
+
+          Ember.run.later(this, function () {
+            $('.js-popup--form_register_service').hide();
+            $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
+            $('body').css('overflow', 'auto');
+            this.transitionToRoute('services.show', $.trim(this.get('registerName')));
+          }, 500);
+        } else {
+          $('.js-popup--form_register_service').hide();
+          $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
+          $('body').css('overflow', 'auto');
+          this.transitionToRoute('index');
+        }
+      })).fail(function() {
+        notify('Received error while registering service', 8000);
+
+        Ember.run.later(function () {
+          $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
+        }, 800);
+      });
     }
   },
 
@@ -550,6 +594,11 @@ App.ServicesShowController = Ember.ObjectController.extend({
   dc: Ember.computed.alias("controllers.dc"),
 
   actions: {
+    editService: function (service, node) {
+      Ember.run.bind(this.get('controllers.services'),
+                     this.get('controllers.services._actions').openNodeServicePopup)(service, node);
+    },
+
     deregisterService: function(node) {
       this.set('isLoading', true);
       var controller = this;

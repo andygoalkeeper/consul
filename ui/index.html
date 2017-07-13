@@ -142,22 +142,22 @@
             <button {{ bind-attr class=":btn :btn-mini :pull-right :btn-primary" }} {{action openNodeServicePopup }}>Register</button>
             <div class="b-popup js-popup--form_register_service" style="display: none;">
               <div class="b-popup-form">
-                <h3 style="margin-bottom: 20px;">Register service</h3>
+                <h3 style="margin-bottom: 20px;">{{#if isRegisterEditing}}Edit{{else}}Register{{/if}} service</h3>
                 <div class="form-group">
                   <h5>Node</h5>
-                  {{view Ember.Select content=registerNodes value=registerNode prompt=registerNodesPrompt class="form-control form-control-mini"}}
+                  {{view Ember.Select content=registerNodes value=registerNode prompt=registerNodesPrompt disabled=isRegisterEditing class="form-control form-control-mini"}}
                 </div>
                 <div class="form-group">
                   <h5>Name</h5>
-                  {{input type="text" value=registerName class="form-control form-control-mini"}}
+                  {{input type="text" value=registerName disabled=isRegisterEditing class="form-control form-control-mini"}}
                 </div>
                 <div class="form-group">
                   <h5>Tag</h5>
-                  {{view Ember.Select content=registerTags value=registerTag prompt="Please select a tag" class="form-control form-control-mini"}}
+                  {{view Ember.Select content=registerTags value=registerTag prompt="Please select a tag" disabled=isRegisterEditing class="form-control form-control-mini"}}
                 </div>
                 <div class="form-group">
                   <h5>Custom tags</h5>
-                  {{input type="text" value=registerCustomTags class="form-control form-control-mini" placeholder="Separate tags by spaces or commas"}}
+                  {{input type="text" value=registerCustomTags disabled=isRegisterEditing class="form-control form-control-mini" placeholder="Separate tags by spaces or commas"}}
                 </div>
                 <div class="form-group" style="height: 74px;">
                   <div style="width: 70%; float: left;">
@@ -171,10 +171,10 @@
                 </div>
                 <div class="form-group">
                   <h5>Id</h5>
-                  {{input type="text" value=registerId class="form-control form-control-mini"}}
+                  {{input type="text" value=registerId disabled=isRegisterEditing class="form-control form-control-mini"}}
                 </div>
                 <p class="js-popup--form_register_service_status" style="padding-top: 10px; overflow: hidden;">
-                  <button {{ action "registerNodeService" service bubbles=false }} {{ bind-attr class=":btn :btn-success :pull-right :btn-mini isLoading:btn-warning" }}>Register service</button>
+                  <button {{ action "registerNodeService" isRegisterEditing bubbles=false }} {{ bind-attr class=":btn :btn-success :pull-right :btn-mini isLoading:btn-warning" }}>{{#if isRegisterEditing}}Edit{{else}}Register{{/if}} service</button>
                   <button style="margin-right: 10px;" {{ action "closeNodeServicePopup" service bubbles=false }} {{ bind-attr class=":btn :btn-primary :pull-right :btn-mini isLoading:btn-warning" }}>Cancel</button>
                 </p>
               </div>
@@ -501,6 +501,7 @@
               {{node.Node.Node}}
               <small>{{node.Node.Address}}</small>
               &nbsp;
+              <button {{ action "editService" model.0.Service node bubbles=false }} {{ bind-attr class=":btn :btn-primary :btn-mini isLoading:btn-warning" }}>Edit service</button>
               <button {{ action "deregisterService" node bubbles=false }} {{ bind-attr class=":btn :btn-danger :btn-mini isLoading:btn-warning" }}>Deregister service on this node</button>
               <span class="panel-note">{{node.checkMessage}}</span>
             </h3>
