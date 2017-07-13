@@ -76,6 +76,18 @@
                 padding-right: 4px;
             }
 
+            span.service-name {
+                max-width: 70%;
+                max-height: 26px;
+                font-size: 12px;
+                line-height: 12px;
+                padding-top: 2px;
+                word-break: break-all;
+                white-space: normal;
+                text-overflow: clip;
+                vertical-align: middle;
+            }
+
             small {
                 display: inline-block;
                 padding-right: 8px;

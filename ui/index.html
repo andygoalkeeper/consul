@@ -372,7 +372,7 @@
                   {{#link-to 'services.show' Name tagName="div" href=false class="list-group-item list-condensed-link" }}
                     <div {{bind-attr class="hasFailingChecks:bg-orange:bg-green :list-bar-horizontal"}}></div>
                     <div class="name">
-                      {{Name}}
+                      <span class="service-name" {{bind-attr title=Name}}>{{Name}}</span>
                       <small class="pull-right">
                         {{ checkMessage }}
                       </small>
