@@ -340,8 +340,133 @@ ItemBaseController = Ember.ArrayController.extend({
   actions: {
     toggleCondensed: function() {
       this.toggleProperty('condensed');
+    },
+
+    openNodeServicePopup: function() {
+      this.set('registerNodesPrompt', 'Loading nodes...');
+
+      Ember.$.getJSON(formatUrl(consulHost + '/v1/internal/ui/nodes', this.get('dc').get('datacenter'),
+                                App.get('settings.token'))).then(Ember.run.bind(this, function (data) {
+        var nodes = [];
+
+        if (data && data.length) {
+          nodes = data.map(function (item) {
+            return item.Node;
+          });
+        }
+
+        this.setProperties({
+          registerName: '',
+          registerNode: '',
+          registerNodes: nodes,
+          registerTag: '',
+          registerTags: ['PROD', 'QA', 'DEV'],
+          registerCustomTags: '',
+          registerNodesPrompt: 'Please select a node',
+          registerAddress: '',
+          registerPort: '',
+          registerId: ''
+        });
+      }));
+
+      Ember.run.next(function () {
+        $('.js-popup--form_register_service').show().scrollTop(0);
+        $('body').css('overflow', 'hidden');
+      });
+    },
+
+    closeNodeServicePopup: function() {
+      $('.js-popup--form_register_service').hide();
+      $('body').css('overflow', 'auto');
+    },
+
+    registerNodeService: function () {
+      var registerCustomTags = (this.get('registerCustomTags') || '').split(/[ ,]+/);
+      var registerCustomTag;
+      var tags = [];
+
+      for (var i = 0, imax = registerCustomTags.length; i < imax; i++) {
+        registerCustomTag = $.trim(registerCustomTags[i]);
+
+        if (registerCustomTag) {
+          tags.push(registerCustomTag);
+        }
+      }
+
+      if (this.get('registerTag')) {
+        tags.unshift(this.get('registerTag'));
+      }
+
+      if (!this.get('registerNode')) {
+        notify('Please select a node', 3000);
+        return;
+      } else if (!$.trim(this.get('registerName'))) {
+        notify('Please enter service name', 3000);
+        return;
+      } else if (!tags.length) {
+        notify('Please select at least one tag', 3000);
+        return;
+      } else if (!$.trim(this.get('registerAddress')) && !$.trim(this.get('registerPort'))) {
+        notify('Please enter an address or a port', 3000);
+        return;
+      } else if (!$.trim(this.get('registerId'))) {
+        notify('Please enter ID', 3000);
+        return;
+      }
+
+      var data = {
+        ID: $.trim(this.get('registerId')),
+        Name: $.trim(this.get('registerName')),
+        Tags: tags
+      };
+
+      if (this.get('registerAddress')) {
+        data.Address = $.trim(this.get('registerAddress'));
+      } else if (this.get('registerPort')) {
+        data.Port = this.get('registerPort');
+      }
+
+      $('.js-popup--form_register_service_status').addClass('b-popup-loading');
+
+      Ember.$.ajax({
+        type: 'post',
+        url: formatUrl(getNodeHost(this.get('registerNode')) + '/v1/agent/service/register',
+             this.get('dc').get('datacenter'), App.get('settings.token')),
+        data: data
+      }).then(function() {
+        $('.js-popup--form_register_service').hide();
+        $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
+        $('body').css('overflow', 'auto');
+        this.transitionToRoute('index');
+      }).fail(Ember.run.bind(this, function() {
+        $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
+      }));
     }
-  }
+  },
+
+  watchRegisterName: function () {
+    if (this.get('registerName')) {
+      this.set('registerId', $.trim((this.get('registerName') || '') + ' ' + (this.get('registerTag') || '')));
+    }
+  }.observes('registerName'),
+
+  watchRegisterTag: function () {
+    if (this.get('registerTag')) {
+      this.set('registerId', $.trim((this.get('registerName') || '') + ' ' + (this.get('registerTag') || '')));
+    }
+  }.observes('registerTag'),
+
+  watchRegisterAddress: function () {
+    if (this.get('registerAddress')) {
+      this.set('registerPort', '');
+    }
+  }.observes('registerAddress'),
+
+  watchRegisterPort: function () {
+    if (this.get('registerPort')) {
+      this.set('registerAddress', '');
+    }
+  }.observes('registerPort')
 });
 
 App.NodesShowController = Ember.ObjectController.extend({

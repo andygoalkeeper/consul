@@ -111,7 +111,7 @@
   <script type="text/x-handlebars" id="actionbar">
     <div class="row">
       <div class="action-bar">
-        <div {{ bind-attr class="searchBar:col-md-10:col-md-5" }} >
+        <div {{ bind-attr class="searchBar:col-md-9:col-md-4" }} >
           <div class="form-group">
             {{ input type="text" value=filter class="form-control form-control-mini" placeholder=filterText}}
           </div>
@@ -124,7 +124,7 @@
           </div>
         {{/if}}
         {{#if statuses}}
-        <div class="col-md-5">
+        <div class="col-md-4">
           <div class="form-group">
             {{view Ember.Select content=statuses value=status class="form-control form-control-mini"}}
           </div>
@@ -137,6 +137,50 @@
           </div>
         </div>
         {{/if}}
+        <div class="col-md-2 hidden-xs hidden-sm">
+          <div class="form-group">
+            <button {{ bind-attr class=":btn :btn-mini :pull-right :btn-primary" }} {{action openNodeServicePopup }}>Register</button>
+            <div class="b-popup js-popup--form_register_service" style="display: none;">
+              <div class="b-popup-form">
+                <h3 style="margin-bottom: 20px;">Register service</h3>
+                <div class="form-group">
+                  <h5>Node</h5>
+                  {{view Ember.Select content=registerNodes value=registerNode prompt=registerNodesPrompt class="form-control form-control-mini"}}
+                </div>
+                <div class="form-group">
+                  <h5>Name</h5>
+                  {{input type="text" value=registerName class="form-control form-control-mini"}}
+                </div>
+                <div class="form-group">
+                  <h5>Tag</h5>
+                  {{view Ember.Select content=registerTags value=registerTag prompt="Please select a tag" class="form-control form-control-mini"}}
+                </div>
+                <div class="form-group">
+                  <h5>Custom tags</h5>
+                  {{input type="text" value=registerCustomTags class="form-control form-control-mini" placeholder="Separate tags by spaces or commas"}}
+                </div>
+                <div class="form-group" style="height: 74px;">
+                  <div style="width: 70%; float: left;">
+                    <h5>Address</h5>
+                    {{input type="text" value=registerAddress class="form-control form-control-mini"}}
+                  </div>
+                  <div style="width: 25%; float: right;">
+                    <h5>Port</h5>
+                    {{input type="text" value=registerPort class="form-control form-control-mini"}}
+                  </div>
+                </div>
+                <div class="form-group">
+                  <h5>Id</h5>
+                  {{input type="text" value=registerId class="form-control form-control-mini"}}
+                </div>
+                <p class="js-popup--form_register_service_status" style="padding-top: 10px; overflow: hidden;">
+                  <button {{ action "registerNodeService" service bubbles=false }} {{ bind-attr class=":btn :btn-success :pull-right :btn-mini isLoading:btn-warning" }}>Register service</button>
+                  <button style="margin-right: 10px;" {{ action "closeNodeServicePopup" service bubbles=false }} {{ bind-attr class=":btn :btn-primary :pull-right :btn-mini isLoading:btn-warning" }}>Cancel</button>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </script>
