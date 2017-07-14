@@ -496,7 +496,7 @@
         {{#link-to 'nodes.show' node.Node.Node tagName="div" href=false class="panel panel-link panel-list" }}
           <div {{bind-attr class="node.hasFailingChecks:bg-orange:bg-green :panel-bar-horizontal"}} style="height: 62px;"></div>
 
-          <div class="panel-heading">
+          <div class="panel-heading panel-heading--nodes">
             <h3 class="panel-title">
               {{node.Node.Node}}
               <small>{{node.Node.Address}}</small>
@@ -505,6 +505,24 @@
               <button {{ action "deregisterService" node bubbles=false }} {{ bind-attr class=":btn :btn-danger :btn-mini isLoading:btn-warning" }}>Deregister service on this node</button>
               <span class="panel-note">{{node.checkMessage}}</span>
             </h3>
+            {{#if node.Service.Address}}
+              <div class="panel-heading-address">
+                <strong>Address: </strong>{{node.Service.Address}}
+              </div>
+            {{else}}
+              {{#if node.Service.Port}}
+                <div class="panel-heading-address">
+                  <strong>Port: </strong>{{node.Service.Port}}
+                </div>
+              {{/if}}
+            {{/if}}
+            {{#if node.Service.Tags.length}}
+              <div class="panel-heading-tags">
+                {{#each tag in node.Service.Tags}}
+                  <div class="panel-heading-tag">{{tag}}</div>
+                {{/each}}
+              </div>
+            {{/if}}
           </div>
 
           <ul class="list-unstyled">
