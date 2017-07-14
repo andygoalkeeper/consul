@@ -304,7 +304,7 @@ App.KvEditController = KvBaseController.extend({
 
 ItemBaseController = Ember.ArrayController.extend({
   needs: ["dc", "application"],
-  queryParams: ["filter", "status", "condensed"],
+  queryParams: ["filter", "status", "condensed", "tag"],
   dc: Ember.computed.alias("controllers.dc"),
   condensed: true,
   hasExpanded: true,
@@ -312,6 +312,8 @@ ItemBaseController = Ember.ArrayController.extend({
   filter: "", // default
   status: "any status", // default
   statuses: ["any status", "passing", "failing"],
+  tag: "any tags", // default
+  tags: ["any tags", "PROD", "QA", "DEV"],
 
   isShowingItem: function() {
     var currentPath = this.get('controllers.application.currentPath');
@@ -321,21 +323,54 @@ ItemBaseController = Ember.ArrayController.extend({
   filteredContent: function() {
     var filter = this.get('filter');
     var status = this.get('status');
+    var tag = this.get('tag');
 
     var items = this.get('items').filter(function(item){
       return item.get('filterKey').toLowerCase().match(filter.toLowerCase());
     });
 
+    var nodes = this.get('dc.nodes');
+
     switch (status) {
       case "passing":
-        return items.filterBy('hasFailingChecks', false);
+        items = items.filterBy('hasFailingChecks', false);
+        break;
       case "failing":
-        return items.filterBy('hasFailingChecks', true);
-      default:
-        return items;
+        items = items.filterBy('hasFailingChecks', true);
+        break;
     }
 
-  }.property('filter', 'status', 'items.@each'),
+    for (var i = 0, imax = items.length; i < imax; i++) {
+      items[i].Tags = [];
+
+      for (var j = 0, jmax = (items[i].Nodes || []).length; j < jmax; j++) {
+        for (var k = 0, kmax = (nodes || []).length; k < kmax; k++) {
+          if (items[i].Nodes[j] === nodes[k].Node) {
+            for (var m = 0, mmax = (nodes[k].Services || []).length; m < mmax; m++) {
+              if (nodes[k].Services[m].Service === items[i].Name) {
+                for (var n = 0, nmax = (nodes[k].Services[m].Tags || []).length; n < nmax; n++) {
+                  if ($.inArray(nodes[k].Services[m].Tags[n], items[i].Tags) === -1) {
+                    items[i].Tags.push(nodes[k].Services[m].Tags[n]);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    switch (tag) {
+      case "PROD":
+      case "QA":
+      case "DEV":
+        items = items.filter(function (item) {
+          return $.inArray(tag, item.Tags) !== -1;
+        });
+    }
+
+    return items;
+  }.property('filter', 'status', 'tag', 'items.@each'),
 
   actions: {
     toggleCondensed: function() {

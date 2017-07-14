@@ -111,7 +111,23 @@
   <script type="text/x-handlebars" id="actionbar">
     <div class="row">
       <div class="action-bar">
-        <div {{ bind-attr class="searchBar:col-md-9:col-md-4" }} >
+        {{#if statuses}}
+          <div class="col-md-6">
+            <div class="form-group">
+              {{view Ember.Select content=statuses value=status class="form-control form-control-mini"}}
+            </div>
+          </div>
+        {{/if}}
+        {{#if tags}}
+          <div class="col-md-6">
+            <div class="form-group">
+              {{view Ember.Select content=tags value=tag class="form-control form-control-mini"}}
+            </div>
+          </div>
+        {{/if}}
+      </div>
+      <div class="action-bar">
+        <div {{ bind-attr class="searchBar:col-md-13:col-md-8" }} >
           <div class="form-group">
             {{ input type="text" value=filter class="form-control form-control-mini" placeholder=filterText}}
           </div>
@@ -123,22 +139,15 @@
             </div>
           </div>
         {{/if}}
-        {{#if statuses}}
-        <div class="col-md-4">
-          <div class="form-group">
-            {{view Ember.Select content=statuses value=status class="form-control form-control-mini"}}
-          </div>
-        </div>
-        {{/if}}
         {{#if hasExpanded }}
-        <div class="col-md-2 hidden-xs hidden-sm">
-          <div class="form-group">
-            <button {{ bind-attr class=":btn :btn-mini :pull-right condensed:btn-default:btn-primary" }} {{action toggleCondensed }}>Expand</button>
+          <div class="col-md-2 hidden-xs hidden-sm">
+            <div class="form-group">
+              <button {{ bind-attr class=":btn :btn-mini :pull-right condensed:btn-default:btn-primary" }} {{action toggleCondensed }}>Expand</button>
+            </div>
           </div>
-        </div>
         {{/if}}
-        <div class="col-md-2 hidden-xs hidden-sm">
-          <div class="form-group">
+        <div class="col-md-2">
+          <div class="form-group" style="height: 34px;">
             <button {{ bind-attr class=":btn :btn-mini :pull-right :btn-primary" }} {{action openNodeServicePopup }}>Register</button>
             <div class="b-popup js-popup--form_register_service" style="display: none;">
               <div class="b-popup-form">
@@ -501,7 +510,7 @@
               {{node.Node.Node}}
               <small>{{node.Node.Address}}</small>
               &nbsp;
-              <button {{ action "editService" model.0.Service node bubbles=false }} {{ bind-attr class=":btn :btn-primary :btn-mini isLoading:btn-warning" }}>Edit service</button>
+              <button {{ action "editService" model.0.Service node bubbles=false }} {{ bind-attr class=":btn :btn-primary :btn-mini isLoading:btn-warning :hidden-xs :hidden-sm" }}>Edit service</button>
               <button {{ action "deregisterService" node bubbles=false }} {{ bind-attr class=":btn :btn-danger :btn-mini isLoading:btn-warning" }}>Deregister service on this node</button>
               <span class="panel-note">{{node.checkMessage}}</span>
             </h3>
