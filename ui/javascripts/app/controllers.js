@@ -494,9 +494,11 @@ ItemBaseController = Ember.ArrayController.extend({
 
       Ember.$.ajax({
         type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
         url: formatUrl(getNodeHost(this.get('registerNode')) + '/v1/agent/service/register',
              this.get('dc').get('datacenter'), App.get('settings.token')),
-        data: data
+        data: JSON.stringify(data)
       }).then(Ember.run.bind(this, function() {
         if (isEditing) {
           this.transitionToRoute('services');
