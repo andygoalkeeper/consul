@@ -412,6 +412,8 @@ ItemBaseController = Ember.ArrayController.extend({
             }
 
             registerCustomTagsString = registerCustomTags.join(', ');
+          } else {
+            registerCustomTagsString = service.Tags.join(', ');
           }
         }
 
@@ -492,14 +494,7 @@ ItemBaseController = Ember.ArrayController.extend({
 
       $('.js-popup--form_register_service_status').addClass('b-popup-loading');
 
-      Ember.$.ajax({
-        type: 'post',
-        dataType: 'json',
-        contentType: 'application/json',
-        url: formatUrl(getNodeHost(this.get('registerNode')) + '/v1/agent/service/register',
-             this.get('dc').get('datacenter'), App.get('settings.token')),
-        data: JSON.stringify(data)
-      }).then(Ember.run.bind(this, function() {
+      var successCallback = function () {
         if (isEditing) {
           this.transitionToRoute('services');
 
@@ -515,12 +510,27 @@ ItemBaseController = Ember.ArrayController.extend({
           $('body').css('overflow', 'auto');
           this.transitionToRoute('index');
         }
-      })).fail(function() {
-        notify('Received error while registering service', 8000);
+      };
 
-        Ember.run.later(function () {
-          $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
-        }, 800);
+      Ember.$.ajax({
+        type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
+        url: formatUrl(getNodeHost(this.get('registerNode')) + '/v1/agent/service/register',
+             this.get('dc').get('datacenter'), App.get('settings.token')),
+        data: JSON.stringify(data)
+      }).then(Ember.run.bind(this, function() {
+        successCallback();
+      })).fail(function(xhr) {
+        if (xhr && (xhr.status === 200)) {
+          successCallback();
+        } else {
+          notify('Received error while registering service', 8000);
+
+          Ember.run.later(function () {
+            $('.js-popup--form_register_service_status').removeClass('b-popup-loading');
+          }, 800);
+        }
       });
     }
   },

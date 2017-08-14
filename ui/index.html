@@ -510,7 +510,7 @@
               {{node.Node.Node}}
               <small>{{node.Node.Address}}</small>
               &nbsp;
-              <button {{ action "editService" model.0.Service node bubbles=false }} {{ bind-attr class=":btn :btn-primary :btn-mini isLoading:btn-warning :hidden-xs :hidden-sm" }}>Edit service</button>
+              <button {{ action "editService" node.Service node bubbles=false }} {{ bind-attr class=":btn :btn-primary :btn-mini isLoading:btn-warning :hidden-xs :hidden-sm" }}>Edit service</button>
               <button {{ action "deregisterService" node bubbles=false }} {{ bind-attr class=":btn :btn-danger :btn-mini isLoading:btn-warning" }}>Deregister service on this node</button>
               <span class="panel-note">{{node.checkMessage}}</span>
             </h3>
