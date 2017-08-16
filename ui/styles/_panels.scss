@@ -94,13 +94,27 @@
     }
 
     .panel-heading-address {
-        font-size: 12px;
-        line-height: 14px;
+        height: 14px;
+        position: relative;
+    }
+
+    .panel-heading-address-host,
+    .panel-heading-address-port {
+        width: 90%;
+        line-height: 12px;
+        top: -4px;
+        left: 24px;
+        position: absolute;
+        font-size: 11px;
         overflow: hidden;
         white-space: nowrap;
         -o-text-overflow: ellipsis;
         text-overflow: ellipsis;
         word-wrap: normal;
+    }
+
+    .panel-heading-address-port {
+        top: 8px;
     }
 
     .panel-body {

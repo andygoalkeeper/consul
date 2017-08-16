@@ -46,6 +46,20 @@ textarea.form-control {
     background: #fff;
 }
 
+.b-popup-form--invisible * {
+    visibility: hidden;
+}
+
+.b-popup-form--invisible:after {
+    width: 100%;
+    line-height: 80px;
+    top: 0;
+    left: 0;
+    position: absolute;
+    content: 'Loading...';
+    text-align: center;
+}
+
 .b-popup-loading {
     position: relative;
 }

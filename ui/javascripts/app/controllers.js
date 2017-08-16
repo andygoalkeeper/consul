@@ -378,6 +378,7 @@ ItemBaseController = Ember.ArrayController.extend({
     },
 
     openNodeServicePopup: function(service, node) {
+      this.set('isPopupDataLoading', true);
       this.set('registerNodesPrompt', 'Loading nodes...');
 
       Ember.$.getJSON(formatUrl(consulHost + '/v1/internal/ui/nodes', this.get('dc').get('datacenter'),
@@ -427,11 +428,15 @@ ItemBaseController = Ember.ArrayController.extend({
           registerCustomTags: registerCustomTagsString,
           registerNodesPrompt: 'Please select a node',
           registerAddress: service ? service.Address : '',
-          registerPort: service ? service.Port : ''
+          registerPort: (service && service.Port) ? service.Port : ''
         });
 
         Ember.run.next(this, function () {
           this.set('registerId', service ? service.ID : '');
+
+          Ember.run.next(this, function () {
+            this.set('isPopupDataLoading', false);
+          });
         });
       }));
 

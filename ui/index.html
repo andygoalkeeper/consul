@@ -150,7 +150,7 @@
           <div class="form-group" style="height: 34px;">
             <button {{ bind-attr class=":btn :btn-mini :pull-right :btn-primary" }} {{action openNodeServicePopup }}>Register</button>
             <div class="b-popup js-popup--form_register_service" style="display: none;">
-              <div class="b-popup-form">
+              <div {{ bind-attr class=":b-popup-form isPopupDataLoading:b-popup-form--invisible" }}>
                 <h3 style="margin-bottom: 20px;">{{#if isRegisterEditing}}Edit{{else}}Register{{/if}} service</h3>
                 <div class="form-group">
                   <h5>Node</h5>
@@ -515,7 +515,12 @@
               <span class="panel-note">{{node.checkMessage}}</span>
             </h3>
             <div class="panel-heading-address">
-              <strong>Address/Port: </strong>{{unbound node.Service.Address}}{{unbound node.Service.Port}}
+              <div class="panel-heading-address-host">
+                 <strong>Address: </strong>{{unbound node.Service.Address}}
+              </div>
+              <div class="panel-heading-address-port">
+                <strong>Port: </strong>{{unbound node.Service.Port}}
+              </div>
             </div>
             <div class="panel-heading-tags">
               {{#each tag in node.Service.Tags}}
